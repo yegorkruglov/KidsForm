@@ -14,8 +14,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let scene = (scene as? UIWindowScene) else { return }
+        
+        let vm = KidsFormViewModel()
+        let vc = KidsFormViewController(viewModel: vm)
+        
         window = UIWindow(windowScene: scene)
-        window?.rootViewController = KidsFormViewController()
+        window?.rootViewController = vc
         window?.makeKeyAndVisible()
     }
 

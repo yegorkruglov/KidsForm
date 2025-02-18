@@ -6,13 +6,23 @@
 //
 
 import UIKit
+import Combine
 
 final class KidsFormViewController: UIViewController {
-    enum Section: Int {
-        case parent
-        case kids
-    }
 
+    // MARK: -  view model
+    
+    private let viewModel: KidsFormViewModel
+    
+    // MARK: - publishers
+    
+    private var cancellables: Set<AnyCancellable> = []
+    private var clearButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
+    private var addChildButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
+    private var deleteChildButtonPublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
+    
+    // MARK: -  private properties
+    
     private var dataSource: UICollectionViewDiffableDataSource<Section, Person>?
     private lazy var layout: UICollectionViewLayout = {
         
@@ -70,17 +80,24 @@ final class KidsFormViewController: UIViewController {
         
         return cv
     }()
-    
     private lazy var clearButton: CustomButton = {
         let button = CustomButton(kind: .clear)
+        button.addAction(
+            UIAction(
+                handler: { [weak self] _ in
+                    self?.clearButtonPublisher.send()
+                }
+            ),
+            for: .touchUpInside
+        )
         return button
     }()
     
     // MARK: - initializers
     
-    init() {
+    init(viewModel: KidsFormViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        initDataSource()
     }
     
     @available(*, unavailable)
@@ -92,8 +109,17 @@ final class KidsFormViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        initDataSource()
         setup()
-//        applyEmptySnapshot()
+        bind()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+            tapGesture.cancelsTouchesInView = false // Позволяет нажимать на кнопки
+            view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 }
 
@@ -163,18 +189,40 @@ private extension KidsFormViewController {
         }
     }
     
-//    func applyEmptySnapshot() {
-//        guard let dataSource else { return }
-//        var snapshot = NSDiffableDataSourceSnapshot<Section, Person>()
-//        snapshot.appendSections([.parent, .kids])
-//        snapshot.appendItems([.init(name: "Egor", age: "32")], toSection: .parent)
-//        snapshot.appendItems([
-//            .init(name: "Alex", age: "34"),
-//            .init(name: "Dmitry", age: "27"),
-//            .init(name: "Nikita", age: "45"),
-//            .init(name: "Sergey", age: "19"),
-//            .init(name: "Vlad", age: "52")
-//        ], toSection: .kids)
-//        dataSource.apply(snapshot, animatingDifferences: false)
-//    }
+    func bind() {
+        let input = KidsFormViewModel.Input(
+            clearButtonPublisher: clearButtonPublisher.eraseToAnyPublisher(),
+            addChildButtonPublisher: addChildButtonPublisher.eraseToAnyPublisher(),
+            deleteChildButtonPublisher: deleteChildButtonPublisher.eraseToAnyPublisher()
+        )
+        
+        let output = viewModel.bind(input)
+        
+        handleDataPublisher(output.dataPublisher)
+    }
+    
+    func handleDataPublisher(_ publisher: AnyPublisher<KidsFormViewModel.StateData, Never>) {
+        publisher
+            .sink { [weak self] data in
+                var snapshot = NSDiffableDataSourceSnapshot<Section, Person>()
+                snapshot.appendSections([.parent, .kids])
+                snapshot.appendItems(data.parent, toSection: .parent)
+                snapshot.appendItems(data.kids, toSection: .kids)
+                self?.display(snapshot)
+            }
+            .store(in: &cancellables)
+    }
+    
+    func display(_ snapshot: NSDiffableDataSourceSnapshot<Section, Person>) {
+        dataSource?.applySnapshotUsingReloadData(snapshot)
+    }
+    
+}
+
+
+extension KidsFormViewController {
+    enum Section: Int {
+        case parent
+        case kids
+    }
 }
