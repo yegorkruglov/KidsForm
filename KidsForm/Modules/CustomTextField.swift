@@ -34,6 +34,9 @@ final class CustomTextField: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func configureWith(text: String) {
+        textField.text = text
+    }
     
     private func setupUI() {
         layer.cornerRadius = 8
