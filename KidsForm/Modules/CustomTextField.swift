@@ -36,6 +36,7 @@ final class CustomTextField: UIView {
     
     func configureWith(text: String) {
         textField.text = text
+        layoutIfNeeded()
     }
     
     private func setupUI() {
@@ -43,21 +44,19 @@ final class CustomTextField: UIView {
         layer.borderWidth = 1
         layer.borderColor = UIColor.systemGray6.cgColor
         
-        [placeholderLabel, textField]
-            .forEach { subview in
-                subview.translatesAutoresizingMaskIntoConstraints = false
-                addSubview(subview)
-            }
+        let vStack = UIStackView(arrangedSubviews: [placeholderLabel, textField])
+        vStack.axis = .vertical
+        vStack.spacing = 4
+        vStack.distribution = .fillProportionally
+        addSubview(vStack)
+        vStack.translatesAutoresizingMaskIntoConstraints =  false
+
         
         NSLayoutConstraint.activate([
-            placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            placeholderLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            
-            textField.topAnchor.constraint(equalTo: placeholderLabel.bottomAnchor, constant: 8),
-            textField.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
-            textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            vStack.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 8),
+            vStack.trailingAnchor.constraint(equalTo: trailingAnchor,constant: -8),
+            vStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            vStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
             
         ])
     }
