@@ -27,6 +27,9 @@ final class CustomHeaderView: UICollectionReusableView {
         return button
     }()
     
+    private var widthConstraintFull: NSLayoutConstraint?
+    private var widthConstraintHalf: NSLayoutConstraint?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -40,12 +43,19 @@ final class CustomHeaderView: UICollectionReusableView {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
-        addButton.isHidden = false
+        widthConstraintFull?.isActive = false
+        widthConstraintHalf?.isActive = false
     }
     
     func configureForSectionKind(_ kind: CustomHeaderView.Kind) {
-        titleLabel.text = kind == .parent ? "Персональные данные" : "Дети (макс. 5)"
-        addButton.isHidden = kind == .parent
+        titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
+        
+        let isParent = (kind == .parent)
+        widthConstraintFull?.isActive = isParent
+        widthConstraintHalf?.isActive = !isParent
+        addButton.isHidden = isParent
+        
+        layoutIfNeeded()
     }
     
     private func setupUI() {
@@ -54,6 +64,9 @@ final class CustomHeaderView: UICollectionReusableView {
             subview.translatesAutoresizingMaskIntoConstraints = false
         }
         
+        widthConstraintFull = titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
+        widthConstraintHalf = titleLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor)
+        
         NSLayoutConstraint.activate([
             addButton.trailingAnchor.constraint(equalTo: trailingAnchor),
             addButton.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -61,7 +74,6 @@ final class CustomHeaderView: UICollectionReusableView {
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
             titleLabel.topAnchor.constraint(equalTo: topAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -16)
         ])
     }
 }
