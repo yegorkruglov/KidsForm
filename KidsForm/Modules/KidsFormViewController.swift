@@ -9,10 +9,35 @@ import UIKit
 
 final class KidsFormViewController: UIViewController {
 
+    // MARK: - lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setup()
     }
-
-
 }
 
+// MARK: - private methods
+
+private extension KidsFormViewController {
+    func setup() {
+        addSubviews()
+        configureSubviews()
+        makeConstraints()
+    }
+    
+    func addSubviews() {
+        
+    }
+    
+    func configureSubviews() {
+        view.backgroundColor = .systemBackground
+
+    }
+    
+    func makeConstraints() {
+        NSLayoutConstraint.activate([
+           
+        ])
+    }
+}
