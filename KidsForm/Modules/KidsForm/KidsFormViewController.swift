@@ -33,7 +33,7 @@ final class KidsFormViewController: UIViewController {
             )
             let groupSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .fractionalHeight(1/5)
+                heightDimension: .estimated(150)
             )
             let item = NSCollectionLayoutItem(layoutSize: layoutSize)
             let group = NSCollectionLayoutGroup.horizontal(
@@ -92,6 +92,11 @@ final class KidsFormViewController: UIViewController {
         )
         return button
     }()
+    private lazy var collectionViewBottomPadding: CGFloat = 16
+    private lazy var clearButtonBottomPadding: CGFloat = 8
+    private lazy var collectionViewBottomConstraint: NSLayoutConstraint = {
+        collectionView.bottomAnchor.constraint(equalTo: clearButton.topAnchor, constant: -collectionViewBottomPadding)
+    }()
     
     // MARK: - initializers
     
@@ -112,14 +117,6 @@ final class KidsFormViewController: UIViewController {
         initDataSource()
         setup()
         bind()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-            tapGesture.cancelsTouchesInView = false // Позволяет нажимать на кнопки
-            view.addGestureRecognizer(tapGesture)
-    }
-    
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
     }
 }
 
@@ -130,6 +127,8 @@ private extension KidsFormViewController {
         addSubviews()
         configureSubviews()
         makeConstraints()
+        addDismissKeyboardTapGestureRecognizer()
+        subscribeToKeyboardNotifications()
     }
     
     func addSubviews() {
@@ -146,12 +145,12 @@ private extension KidsFormViewController {
     func makeConstraints() {
         NSLayoutConstraint.activate([
             clearButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            clearButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
+            clearButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -clearButtonBottomPadding),
             
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionView.bottomAnchor.constraint(equalTo: clearButton.topAnchor, constant: -16)
+            collectionViewBottomConstraint
         ])
     }
     
@@ -217,8 +216,61 @@ private extension KidsFormViewController {
         dataSource?.applySnapshotUsingReloadData(snapshot)
     }
     
+    func addDismissKeyboardTapGestureRecognizer() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    func subscribeToKeyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardNotification),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardNotification),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    func adjustCollectionViewBottomConstraint(constant: CGFloat) {
+        collectionViewBottomConstraint.constant = -constant
+        view.layoutIfNeeded()
+    }
 }
 
+// MARK: - objc methods
+
+private extension KidsFormViewController {
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    @objc func handleKeyboardNotification(_ notification: Notification) {
+        let isKeyboardHidden = notification.name == UIResponder.keyboardWillHideNotification
+        
+        guard !isKeyboardHidden else {
+            adjustCollectionViewBottomConstraint(constant: collectionViewBottomPadding)
+            return
+        }
+        
+        guard
+            let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+        else { return }
+        
+        let keyboardHeight = keyboardFrame.height
+        let safeAreaBottomIsnset = view.safeAreaInsets.bottom
+        let clearButtonHeight = clearButton.frame.height
+        let padding = keyboardHeight - clearButtonHeight - clearButtonBottomPadding - safeAreaBottomIsnset + collectionViewBottomPadding
+        
+        adjustCollectionViewBottomConstraint(constant: padding)
+    }
+}
 
 extension KidsFormViewController {
     enum Section: Int {
