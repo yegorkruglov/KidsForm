@@ -37,7 +37,7 @@ final class CustomButton: UIButton {
         configuration.imagePlacement = .leading
         configuration.imagePadding = 16
         configuration.image = kind == .add ? UIImage(systemName: "plus") : nil
-        configuration.contentInsets  = .init(top: 16, leading: 16, bottom: 16, trailing: 16)
+        configuration.contentInsets  = .init(top: 16, leading: 8, bottom: 16, trailing: 8)
         
         self.configuration = configuration
         

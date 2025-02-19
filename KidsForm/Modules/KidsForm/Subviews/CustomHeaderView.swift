@@ -27,8 +27,9 @@ final class CustomHeaderView: UICollectionReusableView {
         return button
     }()
     
-    private var widthConstraintFull: NSLayoutConstraint?
-    private var widthConstraintHalf: NSLayoutConstraint?
+    private lazy var titleLabelTrailingConstraint: NSLayoutConstraint = {
+        titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0)
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,17 +44,20 @@ final class CustomHeaderView: UICollectionReusableView {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
-        widthConstraintFull?.isActive = false
-        widthConstraintHalf?.isActive = false
+        titleLabelTrailingConstraint.isActive = false
     }
     
     func configureForSectionKind(_ kind: CustomHeaderView.Kind) {
         titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
         
         let isParent = (kind == .parent)
-        widthConstraintFull?.isActive = isParent
-        widthConstraintHalf?.isActive = !isParent
         addButton.isHidden = isParent
+        
+        titleLabelTrailingConstraint = isParent
+        ? titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
+        : titleLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -8)
+        
+        titleLabelTrailingConstraint.isActive = true
         
         layoutIfNeeded()
     }
@@ -63,9 +67,6 @@ final class CustomHeaderView: UICollectionReusableView {
             addSubview(subview)
             subview.translatesAutoresizingMaskIntoConstraints = false
         }
-        
-        widthConstraintFull = titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
-        widthConstraintHalf = titleLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor)
         
         NSLayoutConstraint.activate([
             addButton.trailingAnchor.constraint(equalTo: trailingAnchor),
