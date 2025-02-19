@@ -8,6 +8,7 @@
 import Foundation
 
 struct Person: Hashable {
+    let id: UUID = UUID()
     let name: String
     let age: String
 }

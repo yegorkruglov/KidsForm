@@ -95,8 +95,12 @@ final class KidsFormViewController: UIViewController {
     private lazy var collectionViewBottomPadding: CGFloat = 16
     private lazy var clearButtonBottomPadding: CGFloat = 8
     private lazy var collectionViewBottomConstraint: NSLayoutConstraint = {
-        collectionView.bottomAnchor.constraint(equalTo: clearButton.topAnchor, constant: -collectionViewBottomPadding)
+        collectionView.bottomAnchor.constraint(
+            equalTo: clearButton.topAnchor,
+            constant: -collectionViewBottomPadding
+        )
     }()
+    private var isAddChildButtonEnabled = true
     
     // MARK: - initializers
     
@@ -145,7 +149,10 @@ private extension KidsFormViewController {
     func makeConstraints() {
         NSLayoutConstraint.activate([
             clearButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            clearButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -clearButtonBottomPadding),
+            clearButton.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -clearButtonBottomPadding
+            ),
             
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -155,7 +162,9 @@ private extension KidsFormViewController {
     }
     
     func initDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<Section, Person>(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = UICollectionViewDiffableDataSource<Section, Person>(collectionView: collectionView) {
+            collectionView, indexPath, item in
+            
             guard
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: PersonCell.ientifier,
@@ -168,20 +177,24 @@ private extension KidsFormViewController {
             return cell
         }
         
-        dataSource?.supplementaryViewProvider = { collectionView, elementKind, indexPath in
-            guard let sectionType = Section(rawValue: indexPath.section) else { return nil }
-            
-            guard let header = collectionView.dequeueReusableSupplementaryView(
-                ofKind: UICollectionView.elementKindSectionHeader,
-                withReuseIdentifier: CustomHeaderView.identifier,
-                for: indexPath
-            ) as? CustomHeaderView else { return nil }
+        dataSource?.supplementaryViewProvider = { [weak self] collectionView, elementKind, indexPath in
+            guard let self = self,
+                  let sectionType = Section(rawValue: indexPath.section),
+                  let header = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: UICollectionView.elementKindSectionHeader,
+                    withReuseIdentifier: CustomHeaderView.identifier,
+                    for: indexPath
+                  ) as? CustomHeaderView
+            else {
+                return nil
+            }
             
             switch sectionType {
             case .parent:
                 header.configureForSectionKind(.parent)
             case .kids:
-                header.configureForSectionKind(.kids)
+                header.configureForSectionKind(.kids(isAddChildButtonEnabled: isAddChildButtonEnabled))
+                header.delegate = self
             }
             
             return header
@@ -207,6 +220,7 @@ private extension KidsFormViewController {
                 snapshot.appendSections([.parent, .kids])
                 snapshot.appendItems(data.parent, toSection: .parent)
                 snapshot.appendItems(data.kids, toSection: .kids)
+                self?.isAddChildButtonEnabled = data.isAddChildButtonEnabled
                 self?.display(snapshot)
             }
             .store(in: &cancellables)
@@ -269,6 +283,14 @@ private extension KidsFormViewController {
         let padding = keyboardHeight - clearButtonHeight - clearButtonBottomPadding - safeAreaBottomIsnset + collectionViewBottomPadding
         
         adjustCollectionViewBottomConstraint(constant: padding)
+    }
+}
+
+// MARK: - custom header delegate
+
+extension KidsFormViewController: CustomHeaderViewDelegate {
+    func didTapAddButton() {
+        addChildButtonPublisher.send()
     }
 }
 

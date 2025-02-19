@@ -51,23 +51,37 @@ final class KidsFormViewModel {
 private extension KidsFormViewModel {
     func handleClearButtonPublisher(_ publisher: AnyPublisher<Void, Never>) {
         publisher.sink { [weak self] _ in
-            self?.dataPublisher.send(
-                StateData(
-                    parent: [
-                        Person(
-                            name: String(),
-                            age: String()
-                        )
-                    ],
-                    kids: [],
-                    isAddChildButtonEnabled: true
-                )
-            )
+            let data = StateData(
+                 parent: [
+                     Person(
+                         name: String(),
+                         age: String()
+                     )
+                 ],
+                 kids: [],
+                 isAddChildButtonEnabled: true
+             )
+            self?.data = data
+            self?.dataPublisher.send(data)
         }
         .store(in: &cancellables)
     }
     func handleAddChildButtonPublisher(_ publisher: AnyPublisher<Void, Never>) {
-        
+        publisher
+            .sink { [weak self] _ in
+                guard let self, data.kids.count < 5 else { return }
+                
+                data.kids.append(Person(name: String(), age: String()))
+                
+                dataPublisher.send(
+                    StateData(
+                        parent: data.parent,
+                        kids: data.kids,
+                        isAddChildButtonEnabled: data.kids.count < 5
+                    )
+                )
+            }
+            .store(in: &cancellables)
     }
     func handleDeleteChildButtonPublisher(_ publisher: AnyPublisher<Person, Never>) {
         
@@ -88,7 +102,7 @@ extension KidsFormViewModel {
     
     struct StateData {
         let parent: [Person]
-        let kids: [Person]
+        var kids: [Person]
         let isAddChildButtonEnabled: Bool
     }
 }

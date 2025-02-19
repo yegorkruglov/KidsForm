@@ -7,13 +7,15 @@
 
 import UIKit
 
+protocol CustomHeaderViewDelegate: AnyObject {
+    func didTapAddButton()
+}
+
 final class CustomHeaderView: UICollectionReusableView {
-    enum Kind {
-        case parent
-        case kids
-    }
     
     static var identifier: String { String(describing: Self.self) }
+    
+    weak var delegate: CustomHeaderViewDelegate?
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -24,6 +26,14 @@ final class CustomHeaderView: UICollectionReusableView {
     
     private lazy var addButton: CustomButton = {
         let button = CustomButton(kind: .add)
+        button.addAction(
+            UIAction(
+                handler: { [weak self] _ in
+                    self?.delegate?.didTapAddButton()
+                }
+            ),
+            for: .touchUpInside
+        )
         return button
     }()
     
@@ -40,12 +50,13 @@ final class CustomHeaderView: UICollectionReusableView {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
+        delegate = nil
     }
     
     func configureForSectionKind(_ kind: CustomHeaderView.Kind) {
         titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
         let isParent = (kind == .parent)
-        addButton.isHidden = isParent
+        addButton.isHidden = isParent || kind == .kids(isAddChildButtonEnabled: false)
         layoutIfNeeded()
     }
     
@@ -67,5 +78,12 @@ final class CustomHeaderView: UICollectionReusableView {
             hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
             hStack.topAnchor.constraint(equalTo: topAnchor, constant: 8)
         ])
+    }
+}
+
+extension CustomHeaderView {
+    enum Kind: Equatable {
+        case parent
+        case kids(isAddChildButtonEnabled: Bool)
     }
 }
