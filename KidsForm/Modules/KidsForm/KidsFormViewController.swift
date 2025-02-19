@@ -93,7 +93,7 @@ final class KidsFormViewController: UIViewController {
         )
         return button
     }()
-    private lazy var collectionViewBottomPadding: CGFloat = 16
+    private lazy var collectionViewBottomPadding: CGFloat = 8
     private lazy var clearButtonBottomPadding: CGFloat = 8
     private lazy var collectionViewBottomConstraint: NSLayoutConstraint = {
         collectionView.bottomAnchor.constraint(

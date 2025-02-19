@@ -35,7 +35,7 @@ final class CustomButton: UIButton {
         configuration.title = kind == .add ? "Добавить ребенка" : "Очистить"
         configuration.baseForegroundColor = kind == .add ? .systemBlue : .systemRed
         configuration.imagePlacement = .leading
-        configuration.imagePadding = 16
+        configuration.imagePadding = 8
         configuration.image = kind == .add ? UIImage(systemName: "plus") : nil
         configuration.contentInsets  = .init(top: 16, leading: 8, bottom: 16, trailing: 8)
         
