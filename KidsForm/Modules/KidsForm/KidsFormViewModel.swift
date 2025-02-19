@@ -14,35 +14,22 @@ final class KidsFormViewModel {
         parent: [
             Person(name: String(), age: String())]
         ,
-        kids: [
-            Person(name: "Alex", age: "34"),
-            Person(name: "Dmitry", age: "27"),
-            Person(name: "Nikita", age: "45")
-        ],
-        isAddChildButtonEnabled: true
+        kids: []
     )
+    
     // MARK: - publishers
     
     private var cancellables: Set<AnyCancellable> = []
     private lazy var dataPublisher: CurrentValueSubject<StateData, Never> = CurrentValueSubject<StateData, Never>(data)
     
     func bind(_ input: Input) -> Output {
-        
         handleClearButtonPublisher(input.clearButtonPublisher)
         handleAddChildButtonPublisher(input.addChildButtonPublisher)
         handleDeleteChildButtonPublisher(input.deleteChildButtonPublisher)
-        
-        
-        
-        
-        
-        
-        
-        let output = Output(dataPublisher: dataPublisher.eraseToAnyPublisher())
-       
+        handlePersonUpdatePublisher(input.personUpdatePublisher)
 
-        return output
-    }  
+        return Output(dataPublisher: dataPublisher.eraseToAnyPublisher())
+    }
     
 }
 
@@ -58,8 +45,7 @@ private extension KidsFormViewModel {
                          age: String()
                      )
                  ],
-                 kids: [],
-                 isAddChildButtonEnabled: true
+                 kids: []
              )
             self?.data = data
             self?.dataPublisher.send(data)
@@ -73,20 +59,43 @@ private extension KidsFormViewModel {
                 
                 data.kids.append(Person(name: String(), age: String()))
                 
-                dataPublisher.send(
-                    StateData(
-                        parent: data.parent,
-                        kids: data.kids,
-                        isAddChildButtonEnabled: data.kids.count < 5
-                    )
-                )
+                dataPublisher.send(data)
             }
             .store(in: &cancellables)
     }
     func handleDeleteChildButtonPublisher(_ publisher: AnyPublisher<Person, Never>) {
         publisher
-            .sink { person in
-                print(person.name)
+            .sink { [weak self] person in
+                print("person to delete", person.name, person.id)
+                
+                guard
+                    let self,
+                    let index = data.kids.firstIndex(where: { $0.id == person.id })
+                else {
+                    return
+                }
+                
+                data.kids.remove(at: index)
+                
+                dataPublisher.send(data)
+                
+            }
+            .store(in: &cancellables)
+    }
+    func handlePersonUpdatePublisher(_ publisher: AnyPublisher<Person, Never>) {
+        publisher
+            .sink { [weak self] person in
+                print("person to update", person.name, person.id)
+                
+                guard let self else { return }
+                
+                if person.id == data.parent.first?.id {
+                    data.parent = [person]
+                } else if let index = data.kids.firstIndex(where: { $0.id == person.id }) {
+                    data.kids[index] = person
+                }
+                
+                dataPublisher.send(data)
             }
             .store(in: &cancellables)
     }
@@ -98,6 +107,7 @@ extension KidsFormViewModel {
         let clearButtonPublisher: AnyPublisher<Void, Never>
         let addChildButtonPublisher: AnyPublisher<Void, Never>
         let deleteChildButtonPublisher: AnyPublisher<Person, Never>
+        let personUpdatePublisher: AnyPublisher<Person, Never>
     }
     
     struct Output {
@@ -105,8 +115,8 @@ extension KidsFormViewModel {
     }
     
     struct StateData {
-        let parent: [Person]
+        var parent: [Person]
         var kids: [Person]
-        let isAddChildButtonEnabled: Bool
+        var isAddChildButtonEnabled: Bool { kids.count < 5 }
     }
 }

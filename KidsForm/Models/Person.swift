@@ -9,6 +9,6 @@ import Foundation
 
 struct Person: Hashable {
     let id: UUID = UUID()
-    let name: String
-    let age: String
+    var name: String
+    var age: String
 }

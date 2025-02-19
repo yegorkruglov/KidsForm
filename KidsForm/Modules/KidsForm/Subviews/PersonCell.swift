@@ -7,18 +7,29 @@
 
 import UIKit
 protocol PersonCellDelegate: AnyObject {
-    func deletePerson()
+    func deletePerson(_ person: Person)
+    func personUpdated(_ person: Person)
 }
 
-final class PersonCell: UICollectionViewCell {
+final class PersonCell: UICollectionViewCell, CustomTextFieldDelegate {
     
     static var ientifier: String { String(describing: Self.self) }
     
     weak var delegate: PersonCellDelegate?
     
     private var person: Person?
-    private lazy var nameTextField = CustomTextField(placeHolder: "Имя", keyboardType: .default)
-    private lazy var ageTextFiled = CustomTextField(placeHolder: "Возраст", keyboardType: .numberPad)
+    
+    private lazy var nameTextField = {
+        let tf = CustomTextField(placeHolder: "Имя", keyboardType: .default)
+        return tf
+    }()
+    
+    private lazy var ageTextFiled = {
+        let tf = CustomTextField(placeHolder: "Возраст", keyboardType: .numberPad)
+        tf.delegate = self
+        return tf
+    }()
+    
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Удалить", for: .normal)
@@ -28,7 +39,8 @@ final class PersonCell: UICollectionViewCell {
         button.addAction(
             UIAction(
                 handler: { [weak self] _ in
-                    self?.delegate?.deletePerson()
+                    guard let self, let person else { return }
+                    self.delegate?.deletePerson(person)
                 }
             ),
             for: .touchUpInside
@@ -38,6 +50,7 @@ final class PersonCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         setupUI()
     }
     
@@ -49,7 +62,7 @@ final class PersonCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        delegate = nil
+        drainDelegates()
         deleteButton.isHidden = false
         nameTextField.configureWith(text: String())
         ageTextFiled.configureWith(text: String())
@@ -59,7 +72,18 @@ final class PersonCell: UICollectionViewCell {
         self.person = person
         nameTextField.configureWith(text: person.name)
         ageTextFiled.configureWith(text: person.age)
+        nameTextField.delegate = self
+        ageTextFiled.delegate = self
         deleteButton.isHidden = deleteButtonIsHidden
+    }
+    
+    func didEndEditing() {
+        person?.name = nameTextField.getCurrentText()
+        person?.age = ageTextFiled.getCurrentText()
+        
+        guard let person = person else { return }
+        
+        delegate?.personUpdated(person)
     }
     
     private func setupUI() {
@@ -86,4 +110,9 @@ final class PersonCell: UICollectionViewCell {
         ])
     }
     
+    private func drainDelegates() {
+        delegate = nil
+        nameTextField.delegate = nil
+        ageTextFiled.delegate = nil
+    }
 }

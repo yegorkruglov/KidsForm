@@ -20,6 +20,7 @@ final class KidsFormViewController: UIViewController {
     private var clearButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var addChildButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var deleteChildButtonPublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
+    private var personUpdatePublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
     
     // MARK: -  private properties
     
@@ -207,7 +208,8 @@ private extension KidsFormViewController {
         let input = KidsFormViewModel.Input(
             clearButtonPublisher: clearButtonPublisher.eraseToAnyPublisher(),
             addChildButtonPublisher: addChildButtonPublisher.eraseToAnyPublisher(),
-            deleteChildButtonPublisher: deleteChildButtonPublisher.eraseToAnyPublisher()
+            deleteChildButtonPublisher: deleteChildButtonPublisher.eraseToAnyPublisher(),
+            personUpdatePublisher: personUpdatePublisher.eraseToAnyPublisher()
         )
         
         let output = viewModel.bind(input)
@@ -304,9 +306,11 @@ extension KidsFormViewController {
 }
 
 extension KidsFormViewController: PersonCellDelegate {
-    func deletePerson() {
-        deleteChildButtonPublisher.send(Person(name: "", age: ""))
+    func deletePerson(_ person: Person) {
+        deleteChildButtonPublisher.send(person)
     }
     
-    
+    func personUpdated(_ person: Person) {
+        personUpdatePublisher.send(person)
+    }
 }
