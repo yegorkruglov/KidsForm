@@ -231,7 +231,9 @@ private extension KidsFormViewController {
     }
     
     func display(_ snapshot: NSDiffableDataSourceSnapshot<Section, Person>) {
-        dataSource?.applySnapshotUsingReloadData(snapshot)
+        DispatchQueue.main.async { [weak self] in
+            self?.dataSource?.applySnapshotUsingReloadData(snapshot)
+        }
     }
     
     func addDismissKeyboardTapGestureRecognizer() {
