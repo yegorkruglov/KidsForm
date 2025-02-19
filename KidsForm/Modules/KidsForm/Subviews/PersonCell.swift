@@ -6,11 +6,17 @@
 //
 
 import UIKit
+protocol PersonCellDelegate: AnyObject {
+    func deletePerson()
+}
 
 final class PersonCell: UICollectionViewCell {
     
     static var ientifier: String { String(describing: Self.self) }
     
+    weak var delegate: PersonCellDelegate?
+    
+    private var person: Person?
     private lazy var nameTextField = CustomTextField(placeHolder: "Имя", keyboardType: .default)
     private lazy var ageTextFiled = CustomTextField(placeHolder: "Возраст", keyboardType: .numberPad)
     private lazy var deleteButton: UIButton = {
@@ -18,6 +24,15 @@ final class PersonCell: UICollectionViewCell {
         button.setTitle("Удалить", for: .normal)
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
+        
+        button.addAction(
+            UIAction(
+                handler: { [weak self] _ in
+                    self?.delegate?.deletePerson()
+                }
+            ),
+            for: .touchUpInside
+        )
         return button
     }()
     
@@ -34,12 +49,14 @@ final class PersonCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
+        delegate = nil
         deleteButton.isHidden = false
         nameTextField.configureWith(text: String())
         ageTextFiled.configureWith(text: String())
     }
     
     func configureWith(_ person: Person, deleteButtonIsHidden: Bool) {
+        self.person = person
         nameTextField.configureWith(text: person.name)
         ageTextFiled.configureWith(text: person.age)
         deleteButton.isHidden = deleteButtonIsHidden

@@ -84,7 +84,11 @@ private extension KidsFormViewModel {
             .store(in: &cancellables)
     }
     func handleDeleteChildButtonPublisher(_ publisher: AnyPublisher<Person, Never>) {
-        
+        publisher
+            .sink { person in
+                print(person.name)
+            }
+            .store(in: &cancellables)
     }
 }
 

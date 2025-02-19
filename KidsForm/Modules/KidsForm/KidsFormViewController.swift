@@ -169,9 +169,11 @@ private extension KidsFormViewController {
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: PersonCell.ientifier,
                     for: indexPath) as? PersonCell
-            else { return UICollectionViewCell()
+            else {
+                return UICollectionViewCell()
             }
             
+            cell.delegate = self
             cell.configureWith(item, deleteButtonIsHidden: indexPath.section == 0)
             
             return cell
@@ -299,4 +301,12 @@ extension KidsFormViewController {
         case parent
         case kids
     }
+}
+
+extension KidsFormViewController: PersonCellDelegate {
+    func deletePerson() {
+        deleteChildButtonPublisher.send(Person(name: "", age: ""))
+    }
+    
+    
 }
