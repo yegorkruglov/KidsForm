@@ -27,10 +27,6 @@ final class CustomHeaderView: UICollectionReusableView {
         return button
     }()
     
-    private lazy var titleLabelTrailingConstraint: NSLayoutConstraint = {
-        titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0)
-    }()
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -44,37 +40,32 @@ final class CustomHeaderView: UICollectionReusableView {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
-        titleLabelTrailingConstraint.isActive = false
     }
     
     func configureForSectionKind(_ kind: CustomHeaderView.Kind) {
         titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
-        
         let isParent = (kind == .parent)
         addButton.isHidden = isParent
-        
-        titleLabelTrailingConstraint = isParent
-        ? titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
-        : titleLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -8)
-        
-        titleLabelTrailingConstraint.isActive = true
-        
         layoutIfNeeded()
     }
     
     private func setupUI() {
-        [titleLabel, addButton].forEach { subview in
-            addSubview(subview)
-            subview.translatesAutoresizingMaskIntoConstraints = false
-        }
+        addButton.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        addButton.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        
+        let hStack = UIStackView(arrangedSubviews: [titleLabel, addButton])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.axis = .horizontal
+        hStack.distribution = .fill
+        
+        addSubview(hStack)
         
         NSLayoutConstraint.activate([
-            addButton.trailingAnchor.constraint(equalTo: trailingAnchor),
-            addButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            hStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            hStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 8)
         ])
     }
 }
