@@ -15,7 +15,11 @@ final class CustomHeaderView: UICollectionReusableView {
     
     static var identifier: String { String(describing: Self.self) }
     
+    // MARK: - public properties 
+    
     weak var delegate: CustomHeaderViewDelegate?
+    
+    // MARK: -  ui elements
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -23,7 +27,6 @@ final class CustomHeaderView: UICollectionReusableView {
         label.textColor = .label
         return label
     }()
-    
     private lazy var addButton: CustomButton = {
         let button = CustomButton(kind: .add)
         button.addAction(
@@ -37,6 +40,8 @@ final class CustomHeaderView: UICollectionReusableView {
         return button
     }()
     
+    // MARK: - initializers
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -47,11 +52,15 @@ final class CustomHeaderView: UICollectionReusableView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - override methods
+    
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
         delegate = nil
     }
+    
+    // MARK: - public methods
     
     func configureForSectionKind(_ kind: KidsFormViewController.Section) {
         titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
@@ -59,6 +68,8 @@ final class CustomHeaderView: UICollectionReusableView {
         addButton.isHidden = isParent || kind == .kids(isAddChildButtonEnabled: false)
         layoutIfNeeded()
     }
+    
+    // MARK: -  private methods
     
     private func setupUI() {
         addButton.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)

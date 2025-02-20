@@ -22,6 +22,8 @@ final class KidsFormViewModel {
     private var cancellables: Set<AnyCancellable> = []
     private lazy var dataPublisher: CurrentValueSubject<StateData, Never> = CurrentValueSubject<StateData, Never>(data)
     
+    // MARK: - public methods
+    
     func bind(_ input: Input) -> Output {
         handleClearButtonPublisher(input.clearButtonPublisher)
         handleAddChildButtonPublisher(input.addChildButtonPublisher)
@@ -97,6 +99,9 @@ private extension KidsFormViewModel {
             .store(in: &cancellables)
     }
 }
+
+
+// MARK: - Entities
 
 extension KidsFormViewModel {
     

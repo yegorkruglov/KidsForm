@@ -11,23 +11,23 @@ import Combine
 final class PersonCell: UICollectionViewCell {
     
     static var ientifier: String { String(describing: Self.self) }
-            
+    
+    // MARK: - publishers
+    
     weak var deleteChildButtonPublisher: PassthroughSubject<Person, Never>?
-    
     weak var updatePersonPublisher: PassthroughSubject<Person, Never>?
-    
     private weak var namePublisher: PassthroughSubject<String, Never>?
-    
     private weak var agePublisher: PassthroughSubject<String, Never>?
-    
     private var cancellables: Set<AnyCancellable> = []
+    
+    // MARK: -  private properties
     
     private var person: Person?
     
+    // MARK: - ui elements
+    
     private lazy var nameTextField = CustomTextField(placeHolder: "Имя", keyboardType: .default)
-    
     private lazy var ageTextFiled = CustomTextField(placeHolder: "Возраст", keyboardType: .numberPad)
-    
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Удалить", for: .normal)
@@ -46,6 +46,8 @@ final class PersonCell: UICollectionViewCell {
         return button
     }()
     
+    // MARK: -  initializers
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -55,6 +57,8 @@ final class PersonCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: -  override methods
     
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -66,6 +70,8 @@ final class PersonCell: UICollectionViewCell {
         cancellables.removeAll()
     }
     
+    // MARK: - public methods
+    
     func configureWith(_ person: Person, deleteButtonIsHidden: Bool) {
         self.person = person
         nameTextField.configureWith(text: person.name)
@@ -75,6 +81,8 @@ final class PersonCell: UICollectionViewCell {
         agePublisher = ageTextFiled.textPublisher
         handlePublishers()
     }
+    
+    // MARK: -  private methods
     
     private func setupUI() {
         let vStack = UIStackView(arrangedSubviews: [nameTextField, ageTextFiled])

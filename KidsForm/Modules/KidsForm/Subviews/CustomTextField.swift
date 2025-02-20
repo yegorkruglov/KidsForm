@@ -10,9 +10,12 @@ import Combine
 
 final class CustomTextField: UIView {
     
-    private var cancellables = Set<AnyCancellable>()
+    // MARK: - publishers
     
+    private var cancellables = Set<AnyCancellable>()
     private(set) lazy var textPublisher = PassthroughSubject<String, Never>()
+    
+    // MARK: -  ui elements
     
     private lazy var placeholderLabel: UILabel = {
         let label = UILabel()
@@ -28,6 +31,8 @@ final class CustomTextField: UIView {
         return textField
     }()
     
+    // MARK: -  initializers
+    
     init(placeHolder: String, keyboardType: UIKeyboardType) {
         super.init(frame: .zero)
         placeholderLabel.text = placeHolder
@@ -40,11 +45,15 @@ final class CustomTextField: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: -  public methods
+    
     func configureWith(text: String) {
         textField.text = text
         textField.delegate = self
         layoutIfNeeded()
     }
+    
+    // MARK: - private methods
     
     private func setupUI() {
         layer.cornerRadius = 8
@@ -66,6 +75,8 @@ final class CustomTextField: UIView {
         ])
     }
 }
+
+// MARK: - UITextFieldDelegate
 
 extension CustomTextField: UITextFieldDelegate {
     func textFieldDidEndEditing(_ textField: UITextField) {
