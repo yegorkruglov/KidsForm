@@ -84,7 +84,7 @@ final class KidsFormViewController: UIViewController {
         button.addAction(
             UIAction(
                 handler: { [weak self] _ in
-                    self?.clearButtonPublisher.send()
+                    self?.showClearAlert()
                 }
             ),
             for: .touchUpInside
@@ -296,6 +296,27 @@ private extension KidsFormViewController {
         }
     
         personUpdatePublisher.send(currentPersons)
+    }
+    
+    func showClearAlert() {
+        let alertController = UIAlertController(
+            title: "Очистить?",
+            message: "Будут удалены все добавленные пользователи и очищены все поля",
+            preferredStyle: .actionSheet
+        )
+        
+        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel) { [weak self] _ in
+            self?.dismiss(animated: true)
+        }
+        
+        let confirmAction = UIAlertAction(title: "Очистить", style: .destructive) { [weak self] _ in
+            self?.clearButtonPublisher.send()
+        }
+        
+        alertController.addAction(cancelAction)
+        alertController.addAction(confirmAction)
+        
+        present(alertController, animated: true)
     }
 }
 
