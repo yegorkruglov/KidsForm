@@ -53,7 +53,7 @@ final class CustomHeaderView: UICollectionReusableView {
         delegate = nil
     }
     
-    func configureForSectionKind(_ kind: CustomHeaderView.Kind) {
+    func configureForSectionKind(_ kind: KidsFormViewController.Section) {
         titleLabel.text = (kind == .parent) ? "Персональные данные" : "Дети (макс. 5)"
         let isParent = (kind == .parent)
         addButton.isHidden = isParent || kind == .kids(isAddChildButtonEnabled: false)
@@ -81,9 +81,3 @@ final class CustomHeaderView: UICollectionReusableView {
     }
 }
 
-extension CustomHeaderView {
-    enum Kind: Equatable {
-        case parent
-        case kids(isAddChildButtonEnabled: Bool)
-    }
-}

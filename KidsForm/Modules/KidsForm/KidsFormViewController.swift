@@ -43,9 +43,7 @@ final class KidsFormViewController: UIViewController {
             )
             let section = NSCollectionLayoutSection(group: group)
             section.interGroupSpacing = 16
-            
-            guard let sectionType = Section(rawValue: sectionNumber) else { return section }
-            
+                        
             let headerSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
                 heightDimension: .fractionalWidth(1/5)
@@ -183,7 +181,6 @@ private extension KidsFormViewController {
         
         dataSource?.supplementaryViewProvider = { [weak self] collectionView, elementKind, indexPath in
             guard let self = self,
-                  let sectionType = Section(rawValue: indexPath.section),
                   let header = collectionView.dequeueReusableSupplementaryView(
                     ofKind: UICollectionView.elementKindSectionHeader,
                     withReuseIdentifier: CustomHeaderView.identifier,
@@ -193,10 +190,12 @@ private extension KidsFormViewController {
                 return nil
             }
             
+            let sectionType = Section(sectionNumber: indexPath.section)
+            
             switch sectionType {
             case .parent:
                 header.configureForSectionKind(.parent)
-            case .kids:
+            case .kids(_):
                 header.configureForSectionKind(.kids(isAddChildButtonEnabled: isAddChildButtonEnabled))
                 header.delegate = self
             }
@@ -233,13 +232,19 @@ private extension KidsFormViewController {
             self?.isAddChildButtonEnabled = data.isAddChildButtonEnabled
 
             var dataSourceSnapshot = NSDiffableDataSourceSnapshot<Section, Person>()
-            dataSourceSnapshot.appendSections([.parent, .kids])
-            dataSourceSnapshot.appendItems(data.parent, toSection: .parent)
-            dataSourceSnapshot.appendItems(data.kids, toSection: .kids)
+            dataSourceSnapshot.appendSections(
+                [.parent, .kids(isAddChildButtonEnabled: data.isAddChildButtonEnabled)]
+            )
+            dataSourceSnapshot.appendItems(
+                data.parent,
+                toSection: .parent
+            )
+            dataSourceSnapshot.appendItems(
+                data.kids,
+                toSection: .kids(isAddChildButtonEnabled: data.isAddChildButtonEnabled)
+            )
             
             self?.dataSource?.apply(dataSourceSnapshot)
-            
-           
         }
     }
     
@@ -340,9 +345,27 @@ extension KidsFormViewController: UITextFieldDelegate {
 }
 
 extension KidsFormViewController {
-    enum Section: Int {
+    enum Section: Hashable {
         case parent
-        case kids
+        case kids(isAddChildButtonEnabled: Bool)
+        
+        var sectionNumber: Int {
+            switch self {
+            case .parent:
+                return 0
+            case .kids(_):
+                return 1
+            }
+        }
+        
+        init(sectionNumber: Int) {
+            switch sectionNumber {
+            case 0:
+                self = .parent
+            default:
+                self = .kids(isAddChildButtonEnabled: false)
+            }
+        }
     }
 }
 

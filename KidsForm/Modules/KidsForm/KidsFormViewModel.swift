@@ -98,8 +98,6 @@ private extension KidsFormViewModel {
                     }
                 }
                 
-                print(data.parent.first?.name, data.kids.map({ $0.name }))
-                
                 dataPublisher.send(data)
             }
             .store(in: &cancellables)
