@@ -9,13 +9,7 @@ import UIKit
 
 final class CustomTextField: UIView {
     
-    weak var delegate: UITextFieldDelegate? {
-        didSet {
-            textField.delegate = delegate
-        }
-    }
-    
-    private lazy var placeholderLabel: UILabel = {
+   private lazy var placeholderLabel: UILabel = {
         let label = UILabel()
         label.font = .preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel

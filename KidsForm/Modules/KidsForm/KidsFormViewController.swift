@@ -172,7 +172,6 @@ private extension KidsFormViewController {
                 return UICollectionViewCell()
             }
             
-            cell.textFieldDelegate = self
             cell.deleteChildButtonPublisher = self?.deleteChildButtonPublisher
             cell.configureWith(item, deleteButtonIsHidden: indexPath.section == 0)
             
@@ -274,30 +273,7 @@ private extension KidsFormViewController {
         collectionViewBottomConstraint.constant = -constant
         view.layoutIfNeeded()
     }
-    
-    func collectDataFromCells() {
-        var allIndexPaths: [IndexPath] = []
 
-        let numberOfSections = collectionView.numberOfSections
-        for section in 0..<numberOfSections {
-            let numberOfItems = collectionView.numberOfItems(inSection: section)
-            for row in 0..<numberOfItems {
-                allIndexPaths.append(IndexPath(item: row, section: section))
-            }
-        }
-        
-        var currentPersons: [Person] = []
-        
-        allIndexPaths.forEach { IndexPath in
-            if let cell = collectionView.cellForItem(at: IndexPath) as? PersonCell {
-                guard let currentPerson = cell.getCurrentPersonInfo() else { return }
-                currentPersons.append(currentPerson)
-            }
-        }
-    
-        personUpdatePublisher.send(currentPersons)
-    }
-    
     func showClearAlert() {
         let alertController = UIAlertController(
             title: "Очистить?",
@@ -357,13 +333,7 @@ extension KidsFormViewController: CustomHeaderViewDelegate {
     }
 }
 
-// MARK: - UITextFieldDelegate
-
-extension KidsFormViewController: UITextFieldDelegate {
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        collectDataFromCells()
-    }
-}
+// MARK: - Entities
 
 extension KidsFormViewController {
     enum Section: Hashable {

@@ -11,9 +11,7 @@ import Combine
 final class PersonCell: UICollectionViewCell {
     
     static var ientifier: String { String(describing: Self.self) }
-        
-    weak var textFieldDelegate: UITextFieldDelegate?
-    
+            
     weak var deleteChildButtonPublisher: PassthroughSubject<Person, Never>?
     
     private var person: Person?
@@ -54,7 +52,6 @@ final class PersonCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        textFieldDelegate = nil
         deleteChildButtonPublisher = nil
         deleteButton.isHidden = false
         nameTextField.configureWith(text: String())
@@ -65,8 +62,6 @@ final class PersonCell: UICollectionViewCell {
         self.person = person
         nameTextField.configureWith(text: person.name)
         ageTextFiled.configureWith(text: person.age)
-        nameTextField.delegate = textFieldDelegate
-        ageTextFiled.delegate = textFieldDelegate
         deleteButton.isHidden = deleteButtonIsHidden
     }
     
