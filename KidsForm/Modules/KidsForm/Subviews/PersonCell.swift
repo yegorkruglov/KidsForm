@@ -14,6 +14,14 @@ final class PersonCell: UICollectionViewCell {
             
     weak var deleteChildButtonPublisher: PassthroughSubject<Person, Never>?
     
+    weak var updatePersonPublisher: PassthroughSubject<Person, Never>?
+    
+    private weak var namePublisher: PassthroughSubject<String, Never>?
+    
+    private weak var agePublisher: PassthroughSubject<String, Never>?
+    
+    private var cancellables: Set<AnyCancellable> = []
+    
     private var person: Person?
     
     private lazy var nameTextField = CustomTextField(placeHolder: "Имя", keyboardType: .default)
@@ -40,7 +48,6 @@ final class PersonCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
         setupUI()
     }
     
@@ -52,10 +59,11 @@ final class PersonCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        deleteChildButtonPublisher = nil
         deleteButton.isHidden = false
-        nameTextField.configureWith(text: String())
-        ageTextFiled.configureWith(text: String())
+        deleteChildButtonPublisher = nil
+        namePublisher = nil
+        agePublisher = nil
+        cancellables.removeAll()
     }
     
     func configureWith(_ person: Person, deleteButtonIsHidden: Bool) {
@@ -63,12 +71,9 @@ final class PersonCell: UICollectionViewCell {
         nameTextField.configureWith(text: person.name)
         ageTextFiled.configureWith(text: person.age)
         deleteButton.isHidden = deleteButtonIsHidden
-    }
-    
-    func getCurrentPersonInfo() -> Person? {
-        person?.name = nameTextField.getCurrentText()
-        person?.age = ageTextFiled.getCurrentText()
-        return person
+        namePublisher = nameTextField.textPublisher
+        agePublisher = ageTextFiled.textPublisher
+        handlePublishers()
     }
     
     private func setupUI() {
@@ -93,5 +98,23 @@ final class PersonCell: UICollectionViewCell {
             hStack.topAnchor.constraint(equalTo: contentView.topAnchor),
             hStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
+    }
+    
+    private func handlePublishers() {
+        namePublisher?
+            .sink(receiveValue: { [weak self] name in
+                self?.person?.name = name
+                guard let person = self?.person else { return }
+                self?.updatePersonPublisher?.send(person)
+            })
+            .store(in: &cancellables)
+        
+        agePublisher?
+            .sink(receiveValue: { [weak self] age in
+                self?.person?.age = age
+                guard let person = self?.person else { return }
+                self?.updatePersonPublisher?.send(person)
+            })
+            .store(in: &cancellables)
     }
 }

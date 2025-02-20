@@ -30,7 +30,6 @@ final class KidsFormViewModel {
 
         return Output(dataPublisher: dataPublisher.eraseToAnyPublisher())
     }
-    
 }
 
 // MARK: - private methods
@@ -55,7 +54,7 @@ private extension KidsFormViewModel {
     func handleAddChildButtonPublisher(_ publisher: AnyPublisher<Void, Never>) {
         publisher
             .sink { [weak self] _ in
-                guard let self, data.kids.count < 5 else { return }
+                guard let self, data.isAddChildButtonEnabled else { return }
                 
                 data.kids.append(Person(name: String(), age: String()))
                 
@@ -81,21 +80,16 @@ private extension KidsFormViewModel {
             }
             .store(in: &cancellables)
     }
-    func handlePersonUpdatePublisher(_ publisher: AnyPublisher<[Person], Never>) {
+    func handlePersonUpdatePublisher(_ publisher: AnyPublisher<Person, Never>) {
         publisher
-            .sink { [weak self] persons in
+            .sink { [weak self] person in
                 
                 guard let self else { return }
                 
-                persons.forEach { [weak self] person in
-                    
-                    guard let self else { return }
-                    
-                    if person.id == data.parent.first?.id {
-                        data.parent = [person]
-                    } else if let index = data.kids.firstIndex(where: { $0.id == person.id }) {
-                        data.kids[index] = person
-                    }
+                if person.id == data.parent.first?.id {
+                    data.parent = [person]
+                } else if let index = data.kids.firstIndex(where: { $0.id == person.id }) {
+                    data.kids[index] = person
                 }
                 
                 dataPublisher.send(data)
@@ -110,7 +104,7 @@ extension KidsFormViewModel {
         let clearButtonPublisher: AnyPublisher<Void, Never>
         let addChildButtonPublisher: AnyPublisher<Void, Never>
         let deleteChildButtonPublisher: AnyPublisher<Person, Never>
-        let personUpdatePublisher: AnyPublisher<[Person], Never>
+        let personUpdatePublisher: AnyPublisher<Person, Never>
     }
     
     struct Output {

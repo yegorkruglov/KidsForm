@@ -6,10 +6,15 @@
 //
 
 import UIKit
+import Combine
 
 final class CustomTextField: UIView {
     
-   private lazy var placeholderLabel: UILabel = {
+    private var cancellables = Set<AnyCancellable>()
+    
+    private(set) lazy var textPublisher = PassthroughSubject<String, Never>()
+    
+    private lazy var placeholderLabel: UILabel = {
         let label = UILabel()
         label.font = .preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
@@ -19,6 +24,7 @@ final class CustomTextField: UIView {
     private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.font = .preferredFont(forTextStyle: .body)
+        textField.returnKeyType = .done
         return textField
     }()
     
@@ -36,11 +42,8 @@ final class CustomTextField: UIView {
     
     func configureWith(text: String) {
         textField.text = text
+        textField.delegate = self
         layoutIfNeeded()
-    }
-    
-    func getCurrentText() -> String {
-        return textField.text ?? String()
     }
     
     private func setupUI() {
@@ -52,16 +55,27 @@ final class CustomTextField: UIView {
         vStack.axis = .vertical
         vStack.spacing = 4
         vStack.distribution = .fillProportionally
-        addSubview(vStack)
         vStack.translatesAutoresizingMaskIntoConstraints =  false
-
+        addSubview(vStack)
         
         NSLayoutConstraint.activate([
             vStack.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 8),
             vStack.trailingAnchor.constraint(equalTo: trailingAnchor,constant: -8),
             vStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             vStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
-            
         ])
+    }
+}
+
+extension CustomTextField: UITextFieldDelegate {
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        guard let text = textField.text else { return }
+
+        textPublisher.send(text)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        endEditing(true)
+        return true
     }
 }

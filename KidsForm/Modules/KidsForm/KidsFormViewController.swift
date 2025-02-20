@@ -20,7 +20,7 @@ final class KidsFormViewController: UIViewController {
     private var clearButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var addChildButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var deleteChildButtonPublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
-    private var personUpdatePublisher: PassthroughSubject<[Person], Never> = PassthroughSubject<[Person], Never>()
+    private var personUpdatePublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
     
     // MARK: -  private properties
     
@@ -172,6 +172,7 @@ private extension KidsFormViewController {
                 return UICollectionViewCell()
             }
             
+            cell.updatePersonPublisher = self?.personUpdatePublisher
             cell.deleteChildButtonPublisher = self?.deleteChildButtonPublisher
             cell.configureWith(item, deleteButtonIsHidden: indexPath.section == 0)
             
