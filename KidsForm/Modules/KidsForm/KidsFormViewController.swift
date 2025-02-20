@@ -197,7 +197,7 @@ private extension KidsFormViewController {
                 header.configureForSectionKind(.parent)
             case .kids(_):
                 header.configureForSectionKind(.kids(isAddChildButtonEnabled: isAddChildButtonEnabled))
-                header.delegate = self
+                header.addChildButtonPublisher = addChildButtonPublisher
             }
             
             return header
@@ -323,14 +323,6 @@ private extension KidsFormViewController {
         let padding = keyboardHeight - clearButtonHeight - clearButtonBottomPadding - safeAreaBottomIsnset + collectionViewBottomPadding
         
         adjustCollectionViewBottomConstraint(constant: padding)
-    }
-}
-
-// MARK: - custom header delegate
-
-extension KidsFormViewController: CustomHeaderViewDelegate {
-    func didTapAddButton() {
-        addChildButtonPublisher.send()
     }
 }
 

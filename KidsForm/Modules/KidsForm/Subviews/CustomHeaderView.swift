@@ -6,18 +6,15 @@
 //
 
 import UIKit
-
-protocol CustomHeaderViewDelegate: AnyObject {
-    func didTapAddButton()
-}
+import Combine
 
 final class CustomHeaderView: UICollectionReusableView {
     
     static var identifier: String { String(describing: Self.self) }
     
-    // MARK: - public properties 
+    // MARK: - public properties
     
-    weak var delegate: CustomHeaderViewDelegate?
+    weak var addChildButtonPublisher: PassthroughSubject<Void, Never>?
     
     // MARK: -  ui elements
     
@@ -32,7 +29,7 @@ final class CustomHeaderView: UICollectionReusableView {
         button.addAction(
             UIAction(
                 handler: { [weak self] _ in
-                    self?.delegate?.didTapAddButton()
+                    self?.addChildButtonPublisher?.send()
                 }
             ),
             for: .touchUpInside
@@ -57,7 +54,7 @@ final class CustomHeaderView: UICollectionReusableView {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
-        delegate = nil
+        addChildButtonPublisher = nil
     }
     
     // MARK: - public methods
