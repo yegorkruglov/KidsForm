@@ -66,8 +66,7 @@ private extension KidsFormViewModel {
     func handleDeleteChildButtonPublisher(_ publisher: AnyPublisher<Person, Never>) {
         publisher
             .sink { [weak self] person in
-                print("person to delete", person.name, person.id)
-                
+
                 guard
                     let self,
                     let index = data.kids.firstIndex(where: { $0.id == person.id })
@@ -82,18 +81,24 @@ private extension KidsFormViewModel {
             }
             .store(in: &cancellables)
     }
-    func handlePersonUpdatePublisher(_ publisher: AnyPublisher<Person, Never>) {
+    func handlePersonUpdatePublisher(_ publisher: AnyPublisher<[Person], Never>) {
         publisher
-            .sink { [weak self] person in
-                print("person to update", person.name, person.id)
+            .sink { [weak self] persons in
                 
                 guard let self else { return }
                 
-                if person.id == data.parent.first?.id {
-                    data.parent = [person]
-                } else if let index = data.kids.firstIndex(where: { $0.id == person.id }) {
-                    data.kids[index] = person
+                persons.forEach { [weak self] person in
+                    
+                    guard let self else { return }
+                    
+                    if person.id == data.parent.first?.id {
+                        data.parent = [person]
+                    } else if let index = data.kids.firstIndex(where: { $0.id == person.id }) {
+                        data.kids[index] = person
+                    }
                 }
+                
+                print(data.parent.first?.name, data.kids.map({ $0.name }))
                 
                 dataPublisher.send(data)
             }
@@ -107,7 +112,7 @@ extension KidsFormViewModel {
         let clearButtonPublisher: AnyPublisher<Void, Never>
         let addChildButtonPublisher: AnyPublisher<Void, Never>
         let deleteChildButtonPublisher: AnyPublisher<Person, Never>
-        let personUpdatePublisher: AnyPublisher<Person, Never>
+        let personUpdatePublisher: AnyPublisher<[Person], Never>
     }
     
     struct Output {

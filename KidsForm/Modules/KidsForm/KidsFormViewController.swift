@@ -20,7 +20,7 @@ final class KidsFormViewController: UIViewController {
     private var clearButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var addChildButtonPublisher: PassthroughSubject<Void, Never> = PassthroughSubject<Void, Never>()
     private var deleteChildButtonPublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
-    private var personUpdatePublisher: PassthroughSubject<Person, Never> = PassthroughSubject<Person, Never>()
+    private var personUpdatePublisher: PassthroughSubject<[Person], Never> = PassthroughSubject<[Person], Never>()
     
     // MARK: -  private properties
     
@@ -164,7 +164,7 @@ private extension KidsFormViewController {
     
     func initDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Section, Person>(collectionView: collectionView) {
-            collectionView, indexPath, item in
+            [weak self] collectionView, indexPath, item in
             
             guard
                 let cell = collectionView.dequeueReusableCell(
@@ -174,7 +174,8 @@ private extension KidsFormViewController {
                 return UICollectionViewCell()
             }
             
-            cell.delegate = self
+            cell.textFieldDelegate = self
+            cell.deleteChildButtonPublisher = self?.deleteChildButtonPublisher
             cell.configureWith(item, deleteButtonIsHidden: indexPath.section == 0)
             
             return cell
@@ -220,19 +221,25 @@ private extension KidsFormViewController {
     func handleDataPublisher(_ publisher: AnyPublisher<KidsFormViewModel.StateData, Never>) {
         publisher
             .sink { [weak self] data in
-                var snapshot = NSDiffableDataSourceSnapshot<Section, Person>()
-                snapshot.appendSections([.parent, .kids])
-                snapshot.appendItems(data.parent, toSection: .parent)
-                snapshot.appendItems(data.kids, toSection: .kids)
-                self?.isAddChildButtonEnabled = data.isAddChildButtonEnabled
-                self?.display(snapshot)
+                
+                self?.display(data)
             }
             .store(in: &cancellables)
     }
     
-    func display(_ snapshot: NSDiffableDataSourceSnapshot<Section, Person>) {
+    func display(_ data: KidsFormViewModel.StateData) {
         DispatchQueue.main.async { [weak self] in
-            self?.dataSource?.applySnapshotUsingReloadData(snapshot)
+            
+            self?.isAddChildButtonEnabled = data.isAddChildButtonEnabled
+
+            var dataSourceSnapshot = NSDiffableDataSourceSnapshot<Section, Person>()
+            dataSourceSnapshot.appendSections([.parent, .kids])
+            dataSourceSnapshot.appendItems(data.parent, toSection: .parent)
+            dataSourceSnapshot.appendItems(data.kids, toSection: .kids)
+            
+            self?.dataSource?.apply(dataSourceSnapshot)
+            
+           
         }
     }
     
@@ -262,12 +269,36 @@ private extension KidsFormViewController {
         collectionViewBottomConstraint.constant = -constant
         view.layoutIfNeeded()
     }
+    
+    func collectDataFromCells() {
+        var allIndexPaths: [IndexPath] = []
+
+        let numberOfSections = collectionView.numberOfSections
+        for section in 0..<numberOfSections {
+            let numberOfItems = collectionView.numberOfItems(inSection: section)
+            for row in 0..<numberOfItems {
+                allIndexPaths.append(IndexPath(item: row, section: section))
+            }
+        }
+        
+        var currentPersons: [Person] = []
+        
+        allIndexPaths.forEach { IndexPath in
+            if let cell = collectionView.cellForItem(at: IndexPath) as? PersonCell {
+                guard let currentPerson = cell.getCurrentPersonInfo() else { return }
+                currentPersons.append(currentPerson)
+            }
+        }
+    
+        personUpdatePublisher.send(currentPersons)
+    }
 }
 
 // MARK: - objc methods
 
 private extension KidsFormViewController {
     @objc func dismissKeyboard() {
+        view.resignFirstResponder()
         view.endEditing(true)
     }
     
@@ -300,6 +331,14 @@ extension KidsFormViewController: CustomHeaderViewDelegate {
     }
 }
 
+// MARK: - UITextFieldDelegate
+
+extension KidsFormViewController: UITextFieldDelegate {
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        collectDataFromCells()
+    }
+}
+
 extension KidsFormViewController {
     enum Section: Int {
         case parent
@@ -307,12 +346,3 @@ extension KidsFormViewController {
     }
 }
 
-extension KidsFormViewController: PersonCellDelegate {
-    func deletePerson(_ person: Person) {
-        deleteChildButtonPublisher.send(person)
-    }
-    
-    func personUpdated(_ person: Person) {
-        personUpdatePublisher.send(person)
-    }
-}

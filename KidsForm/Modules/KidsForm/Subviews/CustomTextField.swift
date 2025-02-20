@@ -7,13 +7,13 @@
 
 import UIKit
 
-protocol CustomTextFieldDelegate: AnyObject {
-    func didEndEditing()
-}
-
 final class CustomTextField: UIView {
     
-    weak var delegate: CustomTextFieldDelegate?
+    weak var delegate: UITextFieldDelegate? {
+        didSet {
+            textField.delegate = delegate
+        }
+    }
     
     private lazy var placeholderLabel: UILabel = {
         let label = UILabel()
@@ -25,7 +25,6 @@ final class CustomTextField: UIView {
     private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.font = .preferredFont(forTextStyle: .body)
-        textField.delegate = self
         return textField
     }()
     
@@ -70,11 +69,5 @@ final class CustomTextField: UIView {
             vStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
             
         ])
-    }
-}
-
-extension CustomTextField: UITextFieldDelegate {
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        delegate?.didEndEditing()
     }
 }
